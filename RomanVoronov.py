@@ -3,8 +3,8 @@ from typing import List
 import random
 import numpy as np
 
-input = "barbiegirl_mono.mid"
-output = "outputBarbie.mid"
+input = "input1.mid"
+output = "RomanVoronovOutput1-"
 
 major_scale = (0, 2, 4, 5, 7, 9, 11)  # 2 2 1 2 2 2 1
 minor_scale = (0, 2, 3, 5, 7, 8, 10)  # 2 1 2 2 1 2 2
@@ -178,11 +178,14 @@ class EvolutionaryAlgorithm:
         # 10 point for every note intersection among melody part and chord
         fitness = 5
         for note in fragment:
-            if note in chord:
+            if note % 12 in chord:
                 fitness = fitness + 10
         # penalty for sus chords
         if (chord[1] - chord[0] == 2) or (chord[2] - chord[0] == 2) or (chord[2] - chord[1] == 2):
             fitness -= 5
+
+        if chord[2] + offset_for_chords > 50:
+            fitness -= 4
         return fitness
 
     def get_individual_fitness(self, individual: List[List[int]]) -> int:
@@ -284,6 +287,7 @@ track = mido.MidiFile(input)  # load a midi
 keyident = KeyIdentifier()  # utility object
 keyident.setMelody(track.tracks[1])
 key = keyident.determineKey()  # identify the key
+output = output + str(key) + ".mid"
 chordBuilder = ChordBuilder(key)  # utility object based on key
 pool = chordBuilder.getPool()  # we have only 17 available chord without taking into account inversed triads
 
@@ -321,7 +325,7 @@ accompaniment = EvolutionaryAlgorithm(melody=keyident.melody_notes,
                                       numOfGenes=number_of_chords,
                                       numOfMutations=50,
                                       numOfIndividuals=500,
-                                      numOfMutationsInsideMutation=4,
+                                      numOfMutationsInsideMutation=1,
                                       generationsNumber=1000,
                                       elite=350,
                                       numOfCrossovers=150,
